@@ -10,4 +10,5 @@ export type {
   UploadAction,
   UploadState,
   MediaGalleryState,
+  MediaGalleryAction,
 } from './model/types'

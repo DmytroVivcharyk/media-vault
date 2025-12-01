@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { MediaFile, MediaGalleryState } from '@/entities/media'
+import { createContext, useCallback, useEffect, useMemo, useReducer, type ReactNode } from 'react'
+import type { MediaFile, MediaGalleryState, MediaGalleryAction } from '@/entities/media'
 
 const initialState: MediaGalleryState = {
   files: [],
@@ -11,6 +11,71 @@ const initialState: MediaGalleryState = {
   view: 'grid',
   sortBy: 'date',
   sortOrder: 'desc',
+}
+
+function mediaGalleryReducer(state: MediaGalleryState, action: MediaGalleryAction): MediaGalleryState {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.loading }
+
+    case 'SET_ERROR':
+      return { ...state, error: action.error }
+
+    case 'SET_FILES':
+      return {
+        ...state,
+        files: action.files,
+        loading: false,
+        selectedFiles: state.selectedFiles.filter((key) =>
+          action.files.some((file) => file.key === key)
+        ),
+      }
+
+    case 'DELETE_FILE':
+      return {
+        ...state,
+        files: state.files.filter((file) => file.key !== action.fileKey),
+        selectedFiles: state.selectedFiles.filter((key) => key !== action.fileKey),
+      }
+
+    case 'SELECT_FILE':
+      return {
+        ...state,
+        selectedFiles: state.selectedFiles.includes(action.fileKey)
+          ? state.selectedFiles
+          : [...state.selectedFiles, action.fileKey],
+      }
+
+    case 'DESELECT_FILE':
+      return {
+        ...state,
+        selectedFiles: state.selectedFiles.filter((key) => key !== action.fileKey),
+      }
+
+    case 'SELECT_ALL_FILES':
+      return {
+        ...state,
+        selectedFiles: state.files.map((file) => file.key),
+      }
+
+    case 'DESELECT_ALL_FILES':
+      return {
+        ...state,
+        selectedFiles: [],
+      }
+
+    case 'SET_VIEW':
+      return { ...state, view: action.view }
+
+    case 'SET_SORT_BY':
+      return { ...state, sortBy: action.sortBy }
+
+    case 'SET_SORT_ORDER':
+      return { ...state, sortOrder: action.sortOrder }
+
+    default:
+      return state
+  }
 }
 
 export interface MediaGalleryActions {
@@ -40,7 +105,7 @@ export function MediaGalleryProvider({
   children,
   autoRefreshInterval = 5000,
 }: MediaGalleryProviderProps) {
-  const [state, setState] = useState<MediaGalleryState>(initialState)
+  const [state, dispatch] = useReducer(mediaGalleryReducer, initialState)
 
   const fetchFiles = useCallback(async (): Promise<MediaFile[]> => {
     const response = await fetch('/api/media')
@@ -51,24 +116,16 @@ export function MediaGalleryProvider({
   }, [])
 
   const refreshFiles = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: null }))
+    dispatch({ type: 'SET_LOADING', loading: true })
+    dispatch({ type: 'SET_ERROR', error: null })
 
     try {
       const files = await fetchFiles()
-      setState((prev) => ({
-        ...prev,
-        files,
-        loading: false,
-        // Clear selection if selected files no longer exist
-        selectedFiles: prev.selectedFiles.filter((key) => files.some((file) => file.key === key)),
-      }))
+      dispatch({ type: 'SET_FILES', files })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load files'
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }))
+      dispatch({ type: 'SET_LOADING', loading: false })
+      dispatch({ type: 'SET_ERROR', error: errorMessage })
     }
   }, [fetchFiles])
 
@@ -84,14 +141,10 @@ export function MediaGalleryProvider({
         throw new Error('Failed to delete file')
       }
 
-      setState((prev) => ({
-        ...prev,
-        files: prev.files.filter((file) => file.key !== fileKey),
-        selectedFiles: prev.selectedFiles.filter((key) => key !== fileKey),
-      }))
+      dispatch({ type: 'DELETE_FILE', fileKey })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete file'
-      setState((prev) => ({ ...prev, error: errorMessage }))
+      dispatch({ type: 'SET_ERROR', error: errorMessage })
       throw error
     }
   }, [])
@@ -101,42 +154,31 @@ export function MediaGalleryProvider({
       refreshFiles,
 
       selectFile: (fileKey: string) => {
-        setState((prev) => ({
-          ...prev,
-          selectedFiles: prev.selectedFiles.includes(fileKey)
-            ? prev.selectedFiles
-            : [...prev.selectedFiles, fileKey],
-        }))
+        dispatch({ type: 'SELECT_FILE', fileKey })
       },
 
       deselectFile: (fileKey: string) => {
-        setState((prev) => ({
-          ...prev,
-          selectedFiles: prev.selectedFiles.filter((key) => key !== fileKey),
-        }))
+        dispatch({ type: 'DESELECT_FILE', fileKey })
       },
 
       selectAllFiles: () => {
-        setState((prev) => ({
-          ...prev,
-          selectedFiles: prev.files.map((file) => file.key),
-        }))
+        dispatch({ type: 'SELECT_ALL_FILES' })
       },
 
       deselectAllFiles: () => {
-        setState((prev) => ({ ...prev, selectedFiles: [] }))
+        dispatch({ type: 'DESELECT_ALL_FILES' })
       },
 
       setView: (view: 'grid' | 'list') => {
-        setState((prev) => ({ ...prev, view }))
+        dispatch({ type: 'SET_VIEW', view })
       },
 
       setSortBy: (sortBy: 'name' | 'date' | 'size') => {
-        setState((prev) => ({ ...prev, sortBy }))
+        dispatch({ type: 'SET_SORT_BY', sortBy })
       },
 
       setSortOrder: (sortOrder: 'asc' | 'desc') => {
-        setState((prev) => ({ ...prev, sortOrder }))
+        dispatch({ type: 'SET_SORT_ORDER', sortOrder })
       },
 
       deleteFile,
