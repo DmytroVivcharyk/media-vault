@@ -30,6 +30,18 @@ src/
 └── types/                 # Global type definitions
 ```
 
+## Architecture Decision
+
+**Upload Method Choice**: This application uses presigned URLs with `putObject` for direct-to-storage uploads instead of `createPresignedPost` for several key reasons:
+
+- **Simplicity**: Presigned PUT URLs provide a straightforward upload mechanism with standard HTTP PUT requests, making client-side implementation cleaner and more predictable
+- **Progress Tracking**: XMLHttpRequest with PUT allows for accurate upload progress monitoring, essential for user experience with large files
+- **Security**: Each upload URL is generated server-side with a 1-hour expiration, ensuring controlled access without exposing storage credentials to the client
+- **Performance**: Direct uploads bypass the application server, reducing bandwidth usage and eliminating the bottleneck of proxying large files
+- **Scalability**: The server only handles lightweight URL generation requests, while MinIO handles the actual file storage, allowing the application to scale efficiently
+
+The "Direct-to-Storage" security is maintained through temporary, scoped presigned URLs that grant write access only to specific object keys with time-limited validity.
+
 ## Prerequisites
 
 - Node.js 18+ and npm

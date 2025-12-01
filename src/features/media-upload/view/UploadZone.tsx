@@ -81,7 +81,7 @@ export function UploadZone() {
               <p className="text-lg font-medium text-gray-900">
                 {isDragging ? 'Drop files here' : 'Drop files here or click to browse'}
               </p>
-              <p className="mt-1 text-sm text-gray-500">Support for images and videos up to 10MB</p>
+              <p className="mt-1 text-sm text-gray-500">Support for images and videos up to 100MB</p>
             </div>
 
             {/* File type indicators */}

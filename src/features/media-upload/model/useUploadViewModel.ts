@@ -3,7 +3,7 @@
 import { useCallback, useContext, useMemo } from 'react'
 import { UploadContext } from './UploadProvider'
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 const ALLOWED_TYPES = [
   'image/jpeg',
   'image/png',
