@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Media Vault
 
-## Getting Started
+A modern media storage and management application built with Next.js 16 and MinIO object storage. Upload, view, and manage your media files with a clean, responsive interface.
 
-First, run the development server:
+## Features
+
+- 🚀 **Modern Stack**: Built with Next.js 16, React 19, and TypeScript
+- 📁 **File Upload**: Drag-and-drop file upload with progress tracking
+- 🖼️ **Media Gallery**: Grid and list view with file selection and management
+- 🗂️ **Object Storage**: MinIO S3-compatible storage with presigned URLs
+- 📱 **Responsive Design**: Optimized for desktop and mobile devices
+- ⚡ **Performance**: Direct uploads to storage with optimized loading
+
+## Architecture
+
+The project follows Feature-Sliced Design (FSD) architecture:
+
+```
+src/
+├── app/                    # Next.js app router
+├── entities/               # Business entities
+│   └── media/             # Media entity (types, API)
+├── features/              # Feature modules
+│   ├── media-upload/      # Upload functionality
+│   └── media-gallery/     # Gallery functionality
+├── pages/                 # Page compositions
+├── shared/                # Shared utilities and components
+│   ├── lib/               # Utilities and configurations
+│   └── ui/                # Reusable UI components
+└── types/                 # Global type definitions
+```
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- Docker and Docker Compose
+
+## Quick Start
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/DmytroVivcharyk/media-vault.git
+cd media-vault-project
+npm install
+```
+
+### 2. Environment Setup
+
+Copy the example environment file and configure:
+
+```bash
+cp example.env .env.local
+```
+
+The default configuration works with the included MinIO setup:
+
+```env
+# MinIO (S3-compatible)
+AWS_ACCESS_KEY_ID=minio
+AWS_SECRET_ACCESS_KEY=minio12345
+AWS_REGION=us-east-1
+
+AWS_S3_BUCKET=media-vault
+AWS_S3_ENDPOINT=http://localhost:9000
+```
+
+### 3. Start MinIO Storage
+
+Start the MinIO object storage service:
+
+```bash
+docker compose up -d
+```
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000` to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+npm run format   # Format code with Prettier
+```
 
-## Learn More
+### Code Style
 
-To learn more about Next.js, take a look at the following resources:
+The project uses:
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### State Management
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The application uses React's `useReducer` for predictable state management:
 
-## Deploy on Vercel
+- **UploadProvider**: Manages file upload state and progress
+- **MediaGalleryProvider**: Handles media gallery state and interactions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Both providers follow the same reducer pattern for consistency.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure Details
+
+### Entities
+- `entities/media/` - Core media types and API service
+
+### Features
+- `features/media-upload/` - File upload functionality with progress tracking
+- `features/media-gallery/` - Media gallery with selection and management
+
+### Shared
+- `shared/lib/S3.ts` - AWS S3/MinIO client configuration
+- `shared/ui/` - Reusable UI components (Button, ProgressBar)
+
+## License
+
+This project is licensed under the MIT License.
