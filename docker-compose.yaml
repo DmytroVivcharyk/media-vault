@@ -30,5 +30,6 @@ services:
       /bin/sh -c "
       until mc alias set myminio http://minio:9000 minio minio12345; do sleep 1; done;
       mc mb myminio/media-vault --ignore-existing;
+      mc anonymous set download myminio/media-vault;
       exit 0;
       "
