@@ -132,15 +132,100 @@ interface UploadProviderProps {
 export function UploadProvider({ children }: UploadProviderProps) {
   const [state, dispatch] = useReducer(uploadReducer, initialState)
 
+  async function multipartUpload(fileId: string, file: File) {
+    // 1. Start multipart upload
+    const start = await fetch('/api/upload/multipart/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+      }),
+    }).then((r) => r.json())
+  
+    const { uploadId, key } = start
+  
+    // 2. Chunk the file
+    const CHUNK_SIZE = 8 * 1024 * 1024 // 8MB
+    const chunks = Math.ceil(file.size / CHUNK_SIZE)
+  
+    const uploadedParts: { ETag: string; PartNumber: number }[] = []
+  
+    for (let partNumber = 1; partNumber <= chunks; partNumber++) {
+      const start = (partNumber - 1) * CHUNK_SIZE
+      const end = Math.min(start + CHUNK_SIZE, file.size)
+      const chunk = file.slice(start, end)
+  
+      // 3. Request presigned URL for this part
+      const { url } = await fetch('/api/upload/multipart/sign-part', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key,
+          uploadId,
+          partNumber,
+        }),
+      }).then((r) => r.json())
+  
+      // 4. Upload part
+      const xhr = new XMLHttpRequest()
+  
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const totalUploaded = start + event.loaded
+          const progress = Math.round((totalUploaded / file.size) * 100)
+          dispatch({ type: 'UPDATE_PROGRESS', fileId, progress })
+        }
+      }
+  
+      const partETag = await new Promise<string>((resolve, reject) => {
+        xhr.onload = () => {
+          const ETag = xhr.getResponseHeader('ETag')
+          if (ETag) resolve(ETag.replace(/"/g, ''))
+          else reject(new Error('Missing ETag'))
+        }
+  
+        xhr.onerror = () => reject(new Error('Chunk upload failed'))
+  
+        xhr.open('PUT', url)
+        xhr.setRequestHeader('Content-Type', file.type)
+        xhr.send(chunk)
+      })
+  
+      uploadedParts.push({ ETag: partETag, PartNumber: partNumber })
+    }
+  
+    // 5. Complete multipart upload
+    await fetch('/api/upload/multipart/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key,
+        uploadId,
+        parts: uploadedParts,
+      }),
+    })
+  
+    dispatch({ type: 'UPDATE_PROGRESS', fileId, progress: 100 })
+    dispatch({ type: 'SET_STATUS', fileId, status: 'success' })
+  }
+  
+
   const uploadFile = useCallback(
     async (fileId: string) => {
       const file = state.files.find((f) => f.id === fileId)
       if (!file || file.status !== 'pending') return
-
+  
       try {
         dispatch({ type: 'SET_STATUS', fileId, status: 'uploading' })
-
-        // Generate upload URL
+  
+        // Large files → multipart
+        if (file.file.size > 50 * 1024 * 1024) {
+          await multipartUpload(fileId, file.file)
+          return
+        }
+  
+        // Otherwise: simple upload
         const response = await fetch('/api/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -150,23 +235,20 @@ export function UploadProvider({ children }: UploadProviderProps) {
             fileSize: file.file.size,
           }),
         })
-
-        if (!response.ok) {
-          throw new Error('Failed to get upload URL')
-        }
-
-        const { url, key } = await response.json()
-
-        // Upload file with progress tracking
+  
+        if (!response.ok) throw new Error('Failed presigned upload URL')
+  
+        const { url } = await response.json()
+  
         const xhr = new XMLHttpRequest()
-
+  
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
             const progress = Math.round((event.loaded / event.total) * 100)
             dispatch({ type: 'UPDATE_PROGRESS', fileId, progress })
           }
         }
-
+  
         xhr.onload = () => {
           if (xhr.status === 200) {
             dispatch({ type: 'SET_STATUS', fileId, status: 'success' })
@@ -175,21 +257,26 @@ export function UploadProvider({ children }: UploadProviderProps) {
             dispatch({ type: 'SET_STATUS', fileId, status: 'error', error: 'Upload failed' })
           }
         }
-
+  
         xhr.onerror = () => {
           dispatch({ type: 'SET_STATUS', fileId, status: 'error', error: 'Upload failed' })
         }
-
+  
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', file.file.type)
         xhr.send(file.file)
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Upload failed'
-        dispatch({ type: 'SET_STATUS', fileId, status: 'error', error: errorMessage })
+        dispatch({
+          type: 'SET_STATUS',
+          fileId,
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Upload failed',
+        })
       }
     },
     [state.files],
   )
+  
 
   const actions = useMemo(
     (): UploadActions => ({
