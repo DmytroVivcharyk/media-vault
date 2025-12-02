@@ -3,6 +3,7 @@
 import { useCallback, useContext, useMemo } from 'react'
 import { MediaGalleryContext } from './MediaGalleryProvider'
 import type { MediaFile } from '@/entities/media'
+import type { GalleryState } from '../types/mediaGalaryTypes'
 
 export function useMediaGalleryViewModel() {
   const context = useContext(MediaGalleryContext)
@@ -145,6 +146,13 @@ export function useMediaGalleryViewModel() {
     [getFileType],
   )
 
+  const viewGalleryState = useCallback((): GalleryState => {
+    if (state.error) return 'error'
+    if (state.loading) return 'loading'
+    if (state.files.length === 0) return 'empty'
+    return 'ready'
+    }, [state.error, state.loading, state.files.length])
+
   // Statistics
   const fileStats = useMemo(() => {
     const stats = {
@@ -201,5 +209,8 @@ export function useMediaGalleryViewModel() {
     getFileType,
     isImage,
     isVideo,
+
+    // Gallery state
+    viewGalleryState,
   } as const
 }

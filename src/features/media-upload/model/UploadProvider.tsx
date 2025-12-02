@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext, useCallback, useMemo, useReducer, type ReactNode } from 'react'
-import type { UploadState, UploadAction, UploadFile } from '@/entities/media'
+import type { UploadFile } from '@/entities/media'
+import type { UploadState, UploadReducerAction, UploadHandlers } from '../types/mediaUploadTypes'
 
 const initialState: UploadState = {
   files: [],
@@ -10,7 +11,7 @@ const initialState: UploadState = {
   errors: {},
 }
 
-function uploadReducer(state: UploadState, action: UploadAction): UploadState {
+function uploadReducer(state: UploadState, action: UploadReducerAction): UploadState {
   switch (action.type) {
     case 'ADD_FILES': {
       const newFiles: UploadFile[] = action.files.map((file) => ({
@@ -111,18 +112,9 @@ function uploadReducer(state: UploadState, action: UploadAction): UploadState {
   }
 }
 
-export interface UploadActions {
-  addFiles: (files: File[]) => void
-  uploadFile: (fileId: string) => Promise<void>
-  updateProgress: (fileId: string, progress: number) => void
-  setStatus: (fileId: string, status: UploadFile['status'], error?: string) => void
-  removeFile: (fileId: string) => void
-  clearCompleted: () => void
-}
-
 export const UploadContext = createContext<{
   state: UploadState
-  actions: UploadActions
+  actions: UploadHandlers
 } | null>(null)
 
 interface UploadProviderProps {
@@ -279,7 +271,7 @@ export function UploadProvider({ children }: UploadProviderProps) {
   
 
   const actions = useMemo(
-    (): UploadActions => ({
+    (): UploadHandlers => ({
       addFiles: (files: File[]) => dispatch({ type: 'ADD_FILES', files }),
       uploadFile,
       updateProgress: (fileId: string, progress: number) =>

@@ -1,7 +1,5 @@
 export type MediaFileStatus = 'pending' | 'uploading' | 'success' | 'error'
 
-export type MediaFileType = 'image' | 'video' | 'document'
-
 export interface MediaFile {
   readonly key: string
   readonly fileName?: string
@@ -42,42 +40,4 @@ export interface MediaListResponse {
   readonly totalCount?: number
   readonly hasMore?: boolean
   readonly nextToken?: string
-}
-
-// Discriminated unions for state management
-export type UploadAction =
-  | { type: 'ADD_FILES'; files: File[] }
-  | { type: 'UPDATE_PROGRESS'; fileId: string; progress: number }
-  | { type: 'SET_STATUS'; fileId: string; status: MediaFileStatus; error?: string }
-  | { type: 'REMOVE_FILE'; fileId: string }
-  | { type: 'CLEAR_COMPLETED' }
-
-export interface UploadState {
-  readonly files: UploadFile[]
-  readonly isUploading: boolean
-  readonly progress: Record<string, number>
-  readonly errors: Record<string, string>
-}
-
-export type MediaGalleryAction =
-  | { type: 'SET_LOADING'; loading: boolean }
-  | { type: 'SET_ERROR'; error: string | null }
-  | { type: 'SET_FILES'; files: MediaFile[] }
-  | { type: 'DELETE_FILE'; fileKey: string }
-  | { type: 'SELECT_FILE'; fileKey: string }
-  | { type: 'DESELECT_FILE'; fileKey: string }
-  | { type: 'SELECT_ALL_FILES' }
-  | { type: 'DESELECT_ALL_FILES' }
-  | { type: 'SET_VIEW'; view: 'grid' | 'list' }
-  | { type: 'SET_SORT_BY'; sortBy: 'name' | 'date' | 'size' }
-  | { type: 'SET_SORT_ORDER'; sortOrder: 'asc' | 'desc' }
-
-export interface MediaGalleryState {
-  readonly files: MediaFile[]
-  readonly loading: boolean
-  readonly error: string | null
-  readonly selectedFiles: string[]
-  readonly view: 'grid' | 'list'
-  readonly sortBy: 'name' | 'date' | 'size'
-  readonly sortOrder: 'asc' | 'desc'
 }

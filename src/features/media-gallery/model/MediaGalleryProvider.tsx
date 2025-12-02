@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext, useCallback, useEffect, useMemo, useReducer, type ReactNode } from 'react'
-import type { MediaFile, MediaGalleryState, MediaGalleryAction } from '@/entities/media'
+import type { MediaFile } from '@/entities/media'
+import type { MediaGalleryState, MediaGalleryReducerAction, MediaGalleryHandlers } from '../types/mediaGalaryTypes'
 
 const initialState: MediaGalleryState = {
   files: [],
@@ -13,7 +14,7 @@ const initialState: MediaGalleryState = {
   sortOrder: 'desc',
 }
 
-function mediaGalleryReducer(state: MediaGalleryState, action: MediaGalleryAction): MediaGalleryState {
+function mediaGalleryReducer(state: MediaGalleryState, action: MediaGalleryReducerAction): MediaGalleryState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, loading: action.loading }
@@ -78,22 +79,9 @@ function mediaGalleryReducer(state: MediaGalleryState, action: MediaGalleryActio
   }
 }
 
-export interface MediaGalleryActions {
-  refreshFiles: () => Promise<void>
-  selectFile: (fileKey: string) => void
-  deselectFile: (fileKey: string) => void
-  selectAllFiles: () => void
-  deselectAllFiles: () => void
-  setView: (view: 'grid' | 'list') => void
-  setSortBy: (sortBy: 'name' | 'date' | 'size') => void
-  setSortOrder: (sortOrder: 'asc' | 'desc') => void
-  deleteFile: (fileKey: string) => Promise<void>
-  deleteSelectedFiles: () => Promise<void>
-}
-
 export const MediaGalleryContext = createContext<{
   state: MediaGalleryState
-  actions: MediaGalleryActions
+  actions: MediaGalleryHandlers
 } | null>(null)
 
 interface MediaGalleryProviderProps {
@@ -150,7 +138,7 @@ export function MediaGalleryProvider({
   }, [])
 
   const actions = useMemo(
-    (): MediaGalleryActions => ({
+    (): MediaGalleryHandlers => ({
       refreshFiles,
 
       selectFile: (fileKey: string) => {

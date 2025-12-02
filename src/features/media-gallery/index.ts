@@ -2,4 +2,3 @@
 export { MediaGallery } from './view/MediaGallery'
 export { MediaGalleryProvider } from './model/MediaGalleryProvider'
 export { useMediaGalleryViewModel } from './model/useMediaGalleryViewModel'
-export type { MediaGalleryActions } from './model/MediaGalleryProvider'

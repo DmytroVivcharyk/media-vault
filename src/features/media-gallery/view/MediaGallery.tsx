@@ -5,57 +5,19 @@ import { cn } from '@/shared/lib/utils'
 import { formatFileSize, formatDate } from '../lib/utils'
 import { useMediaGalleryViewModel } from '../model/useMediaGalleryViewModel'
 
+
 export function MediaGallery() {
   const vm = useMediaGalleryViewModel()
+  const galleryState = vm.viewGalleryState()
 
-  if (vm.loading && !vm.hasFiles) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"></div>
-        <span className="ml-3 text-gray-600">Loading media files...</span>
-      </div>
-    )
+  if (galleryState === 'loading') {
+    return <LoadingView />
   }
-
-  if (vm.error) {
-    return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-        <div className="mb-4 text-red-600">
-          <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <h3 className="mb-2 text-lg font-medium text-red-800">Error Loading Files</h3>
-        <p className="mb-4 text-red-600">{vm.error}</p>
-        <Button onClick={vm.refreshFiles} variant="secondary">
-          Try Again
-        </Button>
-      </div>
-    )
+  if (galleryState === 'error') {
+    return <ErrorView errorMesage={vm.error!} onRetry={vm.refreshFiles} />
   }
-
-  if (!vm.hasFiles) {
-    return (
-      <div className="py-12 text-center">
-        <div className="mb-4 text-gray-400">
-          <svg className="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-        <h3 className="mb-2 text-lg font-medium text-gray-900">No media files found</h3>
-        <p className="text-gray-500">Upload some files to get started!</p>
-      </div>
-    )
+  if (galleryState === 'empty') {
+    return <EmptyView />
   }
 
   return (
@@ -385,6 +347,56 @@ export function MediaGallery() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function LoadingView() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"></div>
+      <span className="ml-3 text-gray-600">Loading media files...</span>
+    </div>
+  )
+}
+
+function ErrorView({ errorMesage, onRetry }: { errorMesage: string; onRetry: () => void }) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+        <div className="mb-4 text-red-600">
+          <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <h3 className="mb-2 text-lg font-medium text-red-800">Error Loading Files</h3>
+        <p className="mb-4 text-red-600">{errorMesage}</p>
+        <Button onClick={onRetry} variant="secondary">
+          Try Again
+        </Button>
+      </div>
+  )
+}
+
+function EmptyView() {
+  return (
+    <div className="py-12 text-center">
+      <div className="mb-4 text-gray-400">
+        <svg className="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      </div>
+      <h3 className="mb-2 text-lg font-medium text-gray-900">No media files found</h3>
+      <p className="text-gray-500">Upload some files to get started!</p>
     </div>
   )
 }
