@@ -1,5 +1,13 @@
 import { s3 } from '@/shared/lib/S3'
-import { PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import {
+  PutObjectCommand,
+  ListObjectsV2Command,
+  DeleteObjectCommand,
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  CompleteMultipartUploadCommand,
+  AbortMultipartUploadCommand,
+} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { randomUUID } from 'crypto'
 import type { MediaFile, CreateMediaRequest, MediaListResponse } from '../model/types'
@@ -82,6 +90,58 @@ export class MediaService {
     // Delete files in parallel
     const deletePromises = keys.map((key) => this.deleteFile(key))
     await Promise.allSettled(deletePromises)
+  }
+
+  // Multipart upload methods
+  async createMultipartUpload(key: string, contentType: string): Promise<string> {
+    const command = new CreateMultipartUploadCommand({
+      Bucket: this.bucket,
+      Key: key,
+      ContentType: contentType,
+    })
+
+    const response = await s3.send(command)
+    return response.UploadId!
+  }
+
+  async generateMultipartUploadUrl(
+    key: string,
+    uploadId: string,
+    partNumber: number,
+  ): Promise<string> {
+    const command = new UploadPartCommand({
+      Bucket: this.bucket,
+      Key: key,
+      UploadId: uploadId,
+      PartNumber: partNumber,
+    })
+
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  }
+
+  async completeMultipartUpload(
+    key: string,
+    uploadId: string,
+    parts: Array<{ ETag: string; PartNumber: number }>,
+  ): Promise<void> {
+    const command = new CompleteMultipartUploadCommand({
+      Bucket: this.bucket,
+      Key: key,
+      UploadId: uploadId,
+      MultipartUpload: { Parts: parts },
+    })
+
+    await s3.send(command)
+  }
+
+  async abortMultipartUpload(key: string, uploadId: string): Promise<void> {
+    const command = new AbortMultipartUploadCommand({
+      Bucket: this.bucket,
+      Key: key,
+      UploadId: uploadId,
+    })
+
+    await s3.send(command)
   }
 
   private inferMimeType(key: string): string {
