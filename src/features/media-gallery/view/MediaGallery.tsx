@@ -5,7 +5,6 @@ import { cn } from '@/shared/lib/utils'
 import { formatFileSize, formatDate } from '../lib/utils'
 import { useMediaGalleryViewModel } from '../model/useMediaGalleryViewModel'
 
-
 export function MediaGallery() {
   const vm = useMediaGalleryViewModel()
   const galleryState = vm.viewGalleryState()
@@ -363,22 +362,22 @@ function LoadingView() {
 function ErrorView({ errorMesage, onRetry }: { errorMesage: string; onRetry: () => void }) {
   return (
     <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-        <div className="mb-4 text-red-600">
-          <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <h3 className="mb-2 text-lg font-medium text-red-800">Error Loading Files</h3>
-        <p className="mb-4 text-red-600">{errorMesage}</p>
-        <Button onClick={onRetry} variant="secondary">
-          Try Again
-        </Button>
+      <div className="mb-4 text-red-600">
+        <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
       </div>
+      <h3 className="mb-2 text-lg font-medium text-red-800">Error Loading Files</h3>
+      <p className="mb-4 text-red-600">{errorMesage}</p>
+      <Button onClick={onRetry} variant="secondary">
+        Try Again
+      </Button>
+    </div>
   )
 }
 

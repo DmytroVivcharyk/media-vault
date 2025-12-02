@@ -2,7 +2,11 @@
 
 import { createContext, useCallback, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import type { MediaFile } from '@/entities/media'
-import type { MediaGalleryState, MediaGalleryReducerAction, MediaGalleryHandlers } from '../types/mediaGalaryTypes'
+import type {
+  MediaGalleryState,
+  MediaGalleryReducerAction,
+  MediaGalleryHandlers,
+} from '../types/mediaGalaryTypes'
 
 const initialState: MediaGalleryState = {
   files: [],
@@ -14,7 +18,10 @@ const initialState: MediaGalleryState = {
   sortOrder: 'desc',
 }
 
-function mediaGalleryReducer(state: MediaGalleryState, action: MediaGalleryReducerAction): MediaGalleryState {
+function mediaGalleryReducer(
+  state: MediaGalleryState,
+  action: MediaGalleryReducerAction,
+): MediaGalleryState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, loading: action.loading }
@@ -28,7 +35,7 @@ function mediaGalleryReducer(state: MediaGalleryState, action: MediaGalleryReduc
         files: action.files,
         loading: false,
         selectedFiles: state.selectedFiles.filter((key) =>
-          action.files.some((file) => file.key === key)
+          action.files.some((file) => file.key === key),
         ),
       }
 

@@ -1,6 +1,6 @@
 import type { MediaFile } from '@/entities/media'
 
-export type GalleryState =  "loading" | "error" | "empty" | "ready"
+export type GalleryState = 'loading' | 'error' | 'empty' | 'ready'
 
 export type MediaGalleryReducerAction =
   | { type: 'SET_LOADING'; loading: boolean }
@@ -26,14 +26,14 @@ export interface MediaGalleryState {
 }
 
 export interface MediaGalleryHandlers {
-	refreshFiles: () => Promise<void>
-	selectFile: (fileKey: string) => void
-	deselectFile: (fileKey: string) => void
-	selectAllFiles: () => void
-	deselectAllFiles: () => void
-	setView: (view: 'grid' | 'list') => void
-	setSortBy: (sortBy: 'name' | 'date' | 'size') => void
-	setSortOrder: (sortOrder: 'asc' | 'desc') => void
-	deleteFile: (fileKey: string) => Promise<void>
-	deleteSelectedFiles: () => Promise<void>
+  refreshFiles: () => Promise<void>
+  selectFile: (fileKey: string) => void
+  deselectFile: (fileKey: string) => void
+  selectAllFiles: () => void
+  deselectAllFiles: () => void
+  setView: (view: 'grid' | 'list') => void
+  setSortBy: (sortBy: 'name' | 'date' | 'size') => void
+  setSortOrder: (sortOrder: 'asc' | 'desc') => void
+  deleteFile: (fileKey: string) => Promise<void>
+  deleteSelectedFiles: () => Promise<void>
 }

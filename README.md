@@ -106,6 +106,7 @@ npm run format   # Format code with Prettier
 ### Code Style
 
 The project uses:
+
 - **ESLint** for code linting
 - **Prettier** for code formatting
 - **TypeScript** for type safety
@@ -123,13 +124,16 @@ Both providers follow the same reducer pattern for consistency.
 ## Project Structure Details
 
 ### Entities
+
 - `entities/media/` - Core media types and API service
 
 ### Features
+
 - `features/media-upload/` - File upload functionality with progress tracking
 - `features/media-gallery/` - Media gallery with selection and management
 
 ### Shared
+
 - `shared/lib/S3.ts` - AWS S3/MinIO client configuration
 - `shared/ui/` - Reusable UI components (Button, ProgressBar)
 

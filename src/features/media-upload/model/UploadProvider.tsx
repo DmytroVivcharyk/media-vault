@@ -134,20 +134,20 @@ export function UploadProvider({ children }: UploadProviderProps) {
         fileType: file.type,
       }),
     }).then((r) => r.json())
-  
+
     const { uploadId, key } = start
-  
+
     // 2. Chunk the file
     const CHUNK_SIZE = 8 * 1024 * 1024 // 8MB
     const chunks = Math.ceil(file.size / CHUNK_SIZE)
-  
+
     const uploadedParts: { ETag: string; PartNumber: number }[] = []
-  
+
     for (let partNumber = 1; partNumber <= chunks; partNumber++) {
       const start = (partNumber - 1) * CHUNK_SIZE
       const end = Math.min(start + CHUNK_SIZE, file.size)
       const chunk = file.slice(start, end)
-  
+
       // 3. Request presigned URL for this part
       const { url } = await fetch('/api/upload/multipart/sign-part', {
         method: 'POST',
@@ -158,10 +158,10 @@ export function UploadProvider({ children }: UploadProviderProps) {
           partNumber,
         }),
       }).then((r) => r.json())
-  
+
       // 4. Upload part
       const xhr = new XMLHttpRequest()
-  
+
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const totalUploaded = start + event.loaded
@@ -169,24 +169,24 @@ export function UploadProvider({ children }: UploadProviderProps) {
           dispatch({ type: 'UPDATE_PROGRESS', fileId, progress })
         }
       }
-  
+
       const partETag = await new Promise<string>((resolve, reject) => {
         xhr.onload = () => {
           const ETag = xhr.getResponseHeader('ETag')
           if (ETag) resolve(ETag.replace(/"/g, ''))
           else reject(new Error('Missing ETag'))
         }
-  
+
         xhr.onerror = () => reject(new Error('Chunk upload failed'))
-  
+
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', file.type)
         xhr.send(chunk)
       })
-  
+
       uploadedParts.push({ ETag: partETag, PartNumber: partNumber })
     }
-  
+
     // 5. Complete multipart upload
     await fetch('/api/upload/multipart/complete', {
       method: 'POST',
@@ -197,26 +197,25 @@ export function UploadProvider({ children }: UploadProviderProps) {
         parts: uploadedParts,
       }),
     })
-  
+
     dispatch({ type: 'UPDATE_PROGRESS', fileId, progress: 100 })
     dispatch({ type: 'SET_STATUS', fileId, status: 'success' })
   }
-  
 
   const uploadFile = useCallback(
     async (fileId: string) => {
       const file = state.files.find((f) => f.id === fileId)
       if (!file || file.status !== 'pending') return
-  
+
       try {
         dispatch({ type: 'SET_STATUS', fileId, status: 'uploading' })
-  
+
         // Large files → multipart
         if (file.file.size > 50 * 1024 * 1024) {
           await multipartUpload(fileId, file.file)
           return
         }
-  
+
         // Otherwise: simple upload
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -227,20 +226,20 @@ export function UploadProvider({ children }: UploadProviderProps) {
             fileSize: file.file.size,
           }),
         })
-  
+
         if (!response.ok) throw new Error('Failed presigned upload URL')
-  
+
         const { url } = await response.json()
-  
+
         const xhr = new XMLHttpRequest()
-  
+
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
             const progress = Math.round((event.loaded / event.total) * 100)
             dispatch({ type: 'UPDATE_PROGRESS', fileId, progress })
           }
         }
-  
+
         xhr.onload = () => {
           if (xhr.status === 200) {
             dispatch({ type: 'SET_STATUS', fileId, status: 'success' })
@@ -249,11 +248,11 @@ export function UploadProvider({ children }: UploadProviderProps) {
             dispatch({ type: 'SET_STATUS', fileId, status: 'error', error: 'Upload failed' })
           }
         }
-  
+
         xhr.onerror = () => {
           dispatch({ type: 'SET_STATUS', fileId, status: 'error', error: 'Upload failed' })
         }
-  
+
         xhr.open('PUT', url)
         xhr.setRequestHeader('Content-Type', file.file.type)
         xhr.send(file.file)
@@ -268,7 +267,6 @@ export function UploadProvider({ children }: UploadProviderProps) {
     },
     [state.files],
   )
-  
 
   const actions = useMemo(
     (): UploadHandlers => ({

@@ -1,4 +1,3 @@
-
 import type { MediaFileStatus, UploadFile } from '@/entities/media'
 
 export type UploadReducerAction =
@@ -16,10 +15,10 @@ export interface UploadState {
 }
 
 export interface UploadHandlers {
-    addFiles: (files: File[]) => void
-    uploadFile: (fileId: string) => Promise<void>
-    updateProgress: (fileId: string, progress: number) => void
-    setStatus: (fileId: string, status: UploadFile['status'], error?: string) => void
-    removeFile: (fileId: string) => void
-    clearCompleted: () => void
-  }
+  addFiles: (files: File[]) => void
+  uploadFile: (fileId: string) => Promise<void>
+  updateProgress: (fileId: string, progress: number) => void
+  setStatus: (fileId: string, status: UploadFile['status'], error?: string) => void
+  removeFile: (fileId: string) => void
+  clearCompleted: () => void
+}

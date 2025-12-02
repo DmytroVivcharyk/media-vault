@@ -7,9 +7,10 @@ import { useDragAndDrop } from '../hooks/useDragAndDrop'
 
 export function UploadZone() {
   const vm = useUploadViewModel()
-  const { isDragging, handleDrop, handleDragOver, handleDragLeave, handleFileSelect } = useDragAndDrop({
-    onFileDrop: vm.handleFileDrop,
-  })
+  const { isDragging, handleDrop, handleDragOver, handleDragLeave, handleFileSelect } =
+    useDragAndDrop({
+      onFileDrop: vm.handleFileDrop,
+    })
 
   return (
     <div className="space-y-6">
@@ -50,7 +51,9 @@ export function UploadZone() {
               <p className="text-lg font-medium text-gray-900">
                 {isDragging ? 'Drop files here' : 'Drop files here or click to browse'}
               </p>
-              <p className="mt-1 text-sm text-gray-500">Support for images and videos up to 100MB</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Support for images and videos up to 100MB
+              </p>
             </div>
 
             {/* File type indicators */}

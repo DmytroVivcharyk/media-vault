@@ -151,7 +151,7 @@ export function useMediaGalleryViewModel() {
     if (state.loading) return 'loading'
     if (state.files.length === 0) return 'empty'
     return 'ready'
-    }, [state.error, state.loading, state.files.length])
+  }, [state.error, state.loading, state.files.length])
 
   // Statistics
   const fileStats = useMemo(() => {
