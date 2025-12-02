@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { Button } from '@/shared/ui'
 import { cn } from '@/shared/lib/utils'
 import { formatFileSize, formatDate } from '../lib/utils'
@@ -177,11 +178,14 @@ export function MediaGallery() {
               {/* Media preview */}
               <div className="aspect-square">
                 {vm.isImage(file) ? (
-                  <img
-                    src={file.url}
-                    alt={file.fileName || file.key}
-                    className="h-full w-full object-cover"
-                  />
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={file.url}
+                      alt={file.fileName || file.key}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : vm.isVideo(file) ? (
                   <video
                     src={file.url}
@@ -209,7 +213,7 @@ export function MediaGallery() {
               </div>
 
               {/* File info overlay */}
-              <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+              <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-black/70 to-transparent p-3">
                 <p className="truncate text-xs font-medium text-white">
                   {file.fileName || file.key.split('/').pop()}
                 </p>
@@ -249,13 +253,16 @@ export function MediaGallery() {
                 />
 
                 {/* Thumbnail */}
-                <div className="mr-4 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                <div className="mr-4 h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                   {vm.isImage(file) ? (
-                    <img
-                      src={file.url}
-                      alt={file.fileName || file.key}
-                      className="h-full w-full object-cover"
-                    />
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={file.url}
+                        alt={file.fileName || file.key}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   ) : vm.isVideo(file) ? (
                     <video
                       src={file.url}

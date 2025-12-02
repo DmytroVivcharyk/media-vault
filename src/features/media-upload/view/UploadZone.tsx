@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { cn } from '@/shared/lib/utils'
 import { Button, ProgressBar } from '@/shared/ui'
 import { useUploadViewModel } from '../model/useUploadViewModel'
@@ -133,16 +134,20 @@ export function UploadZone() {
               >
                 <div className="flex min-w-0 flex-1 items-center space-x-3">
                   {/* File preview */}
-                  <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                    <img
-                      src={file.previewUrl}
-                      alt={file.file.name}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        // Fallback to file type icon if image fails to load
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={file.previewUrl}
+                        alt={file.file.name}
+                        fill
+                        className="object-cover"
+                        onError={(e) => {
+                          // Fallback to file type icon if image fails to load
+                          e.currentTarget.style.display = 'none'
+                        }}
+                        unoptimized
+                      />
+                    </div>
                   </div>
 
                   {/* File info */}

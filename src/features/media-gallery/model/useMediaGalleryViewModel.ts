@@ -148,7 +148,7 @@ export function useMediaGalleryViewModel() {
 
   const viewGalleryState = useCallback((): GalleryState => {
     if (state.error) return 'error'
-    if (state.loading) return 'loading'
+    if (state.loading && state.files.length === 0) return 'loading'
     if (state.files.length === 0) return 'empty'
     return 'ready'
   }, [state.error, state.loading, state.files.length])
