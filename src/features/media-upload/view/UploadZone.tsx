@@ -1,46 +1,15 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { useUploadViewModel } from '../model/useUploadViewModel'
-import { Button, ProgressBar } from '@/shared/ui'
 import { cn } from '@/shared/lib/utils'
+import { Button, ProgressBar } from '@/shared/ui'
+import { useUploadViewModel } from '../model/useUploadViewModel'
+import { useDragAndDrop } from '../hooks/useDragAndDrop'
 
 export function UploadZone() {
   const vm = useUploadViewModel()
-  const [isDragging, setIsDragging] = useState(false)
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      const files = Array.from(e.dataTransfer.files)
-      vm.handleFileDrop(files)
-    },
-    [vm],
-  )
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    // Only set dragging to false if we're leaving the drop zone, not just moving between child elements
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragging(false)
-    }
-  }, [])
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files ?? [])
-      vm.handleFileDrop(files)
-      // Reset input value to allow selecting the same file again
-      e.target.value = ''
-    },
-    [vm],
-  )
+  const { isDragging, handleDrop, handleDragOver, handleDragLeave, handleFileSelect } = useDragAndDrop({
+    onFileDrop: vm.handleFileDrop,
+  })
 
   return (
     <div className="space-y-6">

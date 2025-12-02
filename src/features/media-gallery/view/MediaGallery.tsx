@@ -1,37 +1,12 @@
 'use client'
 
-import { useCallback } from 'react'
-import { useMediaGalleryViewModel } from '../model/useMediaGalleryViewModel'
 import { Button } from '@/shared/ui'
 import { cn } from '@/shared/lib/utils'
+import { formatFileSize, formatDate } from '../lib/utils'
+import { useMediaGalleryViewModel } from '../model/useMediaGalleryViewModel'
 
 export function MediaGallery() {
   const vm = useMediaGalleryViewModel()
-
-  const formatFileSize = useCallback((bytes?: number) => {
-    if (!bytes) return 'Unknown size'
-    const units = ['B', 'KB', 'MB', 'GB']
-    let size = bytes
-    let unitIndex = 0
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024
-      unitIndex++
-    }
-
-    return `${size.toFixed(1)} ${units[unitIndex]}`
-  }, [])
-
-  const formatDate = useCallback((date?: Date) => {
-    if (!date) return 'Unknown date'
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }, [])
 
   if (vm.loading && !vm.hasFiles) {
     return (
