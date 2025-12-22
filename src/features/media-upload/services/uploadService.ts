@@ -1,4 +1,4 @@
-import { MediaService } from '@/entities/media/api/mediaService'
+import { MediaApiClient } from '@/entities/media/api/mediaApiClient'
 
 const CHUNK_SIZE = 8 * 1024 * 1024 // 8MB
 
@@ -20,7 +20,7 @@ export class UploadService {
   }
 
   private async simpleUpload(file: File, options?: UploadOptions): Promise<void> {
-    const { url } = await MediaService.getUploadUrl(file.name, file.type, file.size)
+    const { url } = await MediaApiClient.getUploadUrl(file.name, file.type, file.size)
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()
@@ -53,7 +53,7 @@ export class UploadService {
 
   private async multipartUpload(file: File, options?: UploadOptions): Promise<void> {
     // 1. Start multipart upload
-    const { uploadId, key } = await MediaService.startMultipartUpload(file.name, file.type)
+    const { uploadId, key } = await MediaApiClient.startMultipartUpload(file.name, file.type)
 
     // 2. Chunk the file
     const chunks = Math.ceil(file.size / CHUNK_SIZE)
@@ -66,7 +66,7 @@ export class UploadService {
       const chunk = file.slice(start, end)
 
       // 3. Request presigned URL for this part
-      const { url } = await MediaService.getMultipartUploadUrl(key, uploadId, partNumber)
+      const { url } = await MediaApiClient.getMultipartUploadUrl(key, uploadId, partNumber)
 
       // 4. Upload part
       const xhr = new XMLHttpRequest()
@@ -97,7 +97,7 @@ export class UploadService {
     }
 
     // 5. Complete multipart upload
-    await MediaService.completeMultipartUploadRequest(key, uploadId, uploadedParts)
+    await MediaApiClient.completeMultipartUpload(key, uploadId, uploadedParts)
 
     if (options?.onProgress) options.onProgress(100)
   }

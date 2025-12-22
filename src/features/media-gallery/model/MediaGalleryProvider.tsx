@@ -7,7 +7,7 @@ import type {
   MediaGalleryReducerAction,
   MediaGalleryHandlers,
 } from '../types/mediaGalaryTypes'
-import { MediaService } from '@/entities/media/api/mediaService'
+import { MediaApiClient } from '@/entities/media/api/mediaApiClient'
 
 const initialState: MediaGalleryState = {
   files: [],
@@ -104,7 +104,7 @@ export function MediaGalleryProvider({
   const [state, dispatch] = useReducer(mediaGalleryReducer, initialState)
 
   const fetchFiles = useCallback(async (): Promise<MediaFile[]> => {
-    return MediaService.fetchMediaFiles()
+    return MediaApiClient.fetchMediaFiles()
   }, [])
 
   const refreshFiles = useCallback(async () => {
@@ -123,7 +123,7 @@ export function MediaGalleryProvider({
 
   const deleteFile = useCallback(async (fileKey: string) => {
     try {
-      await MediaService.deleteMediaFile(fileKey)
+      await MediaApiClient.deleteMediaFile(fileKey)
       dispatch({ type: 'DELETE_FILE', fileKey })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete file'
