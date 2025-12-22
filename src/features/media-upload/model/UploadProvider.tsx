@@ -3,7 +3,7 @@
 import { createContext, useCallback, useMemo, useReducer, type ReactNode } from 'react'
 import type { UploadFile } from '@/entities/media'
 import type { UploadState, UploadReducerAction, UploadHandlers } from '../types/mediaUploadTypes'
-import { uploadService } from '../api/uploadService'
+import { uploadService } from '../services/uploadService'
 
 const initialState: UploadState = {
   files: [],
