@@ -10,21 +10,25 @@ export const UploadContext = createContext<{
   actions: UploadHandlers
 } | null>(null)
 
-export function UploadProvider({ children }: { children: ReactNode }) {
+interface UploadProviderProps {
+  children: ReactNode
+}
+
+export function UploadProvider({ children }: UploadProviderProps) {
   const [state, dispatch] = useReducer(uploadReducer, initialState)
 
-  const base = useMemo(() => createUploadActions(dispatch), [dispatch])
+  const baseActions = useMemo(() => createUploadActions(dispatch), [dispatch])
 
   const actions = useMemo<UploadHandlers>(
     () => ({
-      ...base,
+      ...baseActions,
       uploadFile: async (fileId: string) => {
         const file = state.files.find((f) => f.id === fileId)
         if (!file) return
-        await base.uploadFile(file)
+        await baseActions.uploadFile(file)
       },
     }),
-    [base, state.files],
+    [baseActions, state.files],
   )
 
   return <UploadContext.Provider value={{ state, actions }}>{children}</UploadContext.Provider>
