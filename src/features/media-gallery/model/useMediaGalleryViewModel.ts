@@ -12,15 +12,18 @@ export function useMediaGalleryViewModel() {
   const { state, actions } = context
 
   const media = useMediaFiles()
-  const files = useMemo(() => (media.list.status === 'ready' ? media.list.data :
-    media.list.status === 'loading' ? (media.list.data ?? []) :
-    media.list.status === 'error' ? (media.list.data ?? []) :
-    []), [media.list])
+  const files = useMemo(
+    () => ('data' in media.list ? (media.list.data ?? []) : []),
+    [media.list],
+  )
 
   // Loading state
-  const loading = media.list.status === 'idle' || media.list.status === 'loading'
   const error = media.list.status === 'error' ? media.list.error : null
-  const isInitialLoading = media.list.status !== 'ready' && files.length === 0
+
+  const isInitialLoading = (media.list.status === 'idle' || media.list.status === 'loading') && files.length === 0
+  const loading = isInitialLoading
+
+  // const isRefreshing = media.list.status === 'loading' && files.length > 0
 
   // Computed properties
   const hasFiles = files.length > 0
@@ -176,12 +179,11 @@ export function useMediaGalleryViewModel() {
 
   // Gallery state
   const viewGalleryState = useCallback((): GalleryState => {
-    console.log('files length:', files.length, 'loading:', loading, 'error:', error)
     if (error && files.length === 0) return 'error'
     if (isInitialLoading) return 'loading'
     if (files.length === 0) return 'empty'
     return 'ready'
-  }, [files.length, loading, error, isInitialLoading])
+  }, [files.length, error, isInitialLoading])
 
 
   return {

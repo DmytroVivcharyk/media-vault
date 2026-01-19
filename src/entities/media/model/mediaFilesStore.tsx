@@ -1,6 +1,13 @@
 'use client'
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useReducer,
+  type ReactNode,
+} from 'react'
 import type { MediaFile } from './types'
 import { MediaApiClient } from '../api/mediaApiClient'
 
@@ -18,41 +25,89 @@ type MediaFilesStore = {
   invalidate: () => void
 }
 
+type Action =
+  | { type: 'LOAD_START' }
+  | { type: 'LOAD_SUCCESS'; files: MediaFile[] }
+  | { type: 'LOAD_ERROR'; error: string }
+  | { type: 'REMOVE_OPTIMISTIC'; fileKey: string }
+  | { type: 'INVALIDATE' }
+
+const initialState: ListState = { status: 'idle' }
+
+function reducer(state: ListState, action: Action): ListState {
+  switch (action.type) {
+    case 'LOAD_START': {
+      // keep existing data if we have it (prevents 8 -> 0 -> 8)
+      const prevData =
+        state.status === 'ready' ? state.data :
+        state.status === 'loading' ? state.data :
+        state.status === 'error' ? state.data :
+        undefined
+
+      return { status: 'loading', data: prevData }
+    }
+
+    case 'LOAD_SUCCESS':
+      return { status: 'ready', data: action.files }
+
+    case 'LOAD_ERROR': {
+      const prevData =
+        state.status === 'ready' ? state.data :
+        state.status === 'loading' ? state.data :
+        state.status === 'error' ? state.data :
+        undefined
+
+      return { status: 'error', error: action.error, data: prevData }
+    }
+
+    case 'REMOVE_OPTIMISTIC': {
+      if (state.status !== 'ready') return state
+      return { status: 'ready', data: state.data.filter((f) => f.key !== action.fileKey) }
+    }
+
+    case 'INVALIDATE':
+      return { status: 'idle' }
+
+    default:
+      return state
+  }
+}
+
 const Ctx = createContext<MediaFilesStore | null>(null)
 
-export function MediaFilesProvider({ children }: { children: React.ReactNode }) {
-  const [list, setList] = useState<ListState>({ status: 'idle' })
+export function MediaFilesProvider({ children }: { children: ReactNode }) {
+  const [list, dispatch] = useReducer(reducer, initialState)
 
   const refresh = useCallback(async () => {
-    setList(prev => ({
-      status: 'loading',
-      data: prev.status === 'ready' ? prev.data : prev.status === 'loading' ? prev.data : undefined,
-    }))
-  
+    dispatch({ type: 'LOAD_START' })
     try {
       const files = await MediaApiClient.fetchMediaFiles()
-      setList({ status: 'ready', data: files })
+      dispatch({ type: 'LOAD_SUCCESS', files })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed to load files'
-      setList(prev => ({ status: 'error', error: msg, data: 'data' in prev ? prev.data : undefined }))
+      dispatch({ type: 'LOAD_ERROR', error: msg })
     }
   }, [])
 
   const load = useCallback(async () => {
-    // dedupe: only load once
     if (list.status === 'loading' || list.status === 'ready') return
     await refresh()
   }, [list.status, refresh])
 
   const remove = useCallback(async (fileKey: string) => {
-    await MediaApiClient.deleteMediaFile(fileKey)
-    setList((prev) => {
-      if (prev.status !== 'ready') return prev
-      return { status: 'ready', data: prev.data.filter((f) => f.key !== fileKey) }
-    })
-  }, [])
+    dispatch({ type: 'REMOVE_OPTIMISTIC', fileKey })
 
-  const invalidate = useCallback(() => setList({ status: 'idle' }), [])
+    try {
+      await MediaApiClient.deleteMediaFile(fileKey)
+    } catch (e) {
+      await refresh()
+      throw e
+    }
+  }, [refresh])
+
+  const invalidate = useCallback(() => {
+    dispatch({ type: 'INVALIDATE' })
+  }, [])
 
   const value = useMemo(
     () => ({ list, load, refresh, remove, invalidate }),
