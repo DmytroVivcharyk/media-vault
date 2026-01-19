@@ -1,7 +1,9 @@
 'use client'
 
+import { MediaFilesProvider } from '@/entities/media/model/mediaFilesStore'
+import { MediaFilesGate } from '@/entities/media/ui/gates/MediaFilesGate'
 import { UploadProvider, UploadZone } from '@/features/media-upload'
-import { MediaGalleryProvider, MediaGallery, MediaGalleryGate } from '@/features/media-gallery'
+import { MediaGalleryProvider, MediaGallery } from '@/features/media-gallery'
 
 export default function MediaVaultPage() {
   return (
@@ -33,10 +35,13 @@ export default function MediaVaultPage() {
 
           {/* Gallery Section */}
           <section>
-            <MediaGalleryProvider>
-              <MediaGalleryGate autoRefreshInterval={5000} />
-              <MediaGallery />
-            </MediaGalleryProvider>
+            <MediaFilesProvider>
+              <MediaFilesGate autoRefreshInterval={5000} />
+
+              <MediaGalleryProvider>
+                <MediaGallery />
+              </MediaGalleryProvider>
+            </MediaFilesProvider>
           </section>
         </div>
       </div>

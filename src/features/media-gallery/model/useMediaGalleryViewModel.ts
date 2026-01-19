@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
+import { useMediaFiles } from '@/entities/media/model/mediaFilesStore'
 import { useMediaGallery } from './useMediaGallery'
+
 import type { MediaFile } from '@/entities/media'
 import type { GalleryState } from '../types/mediaGalaryTypes'
 
@@ -9,15 +11,19 @@ export function useMediaGalleryViewModel() {
   const context = useMediaGallery()
   const { state, actions } = context
 
+  const media = useMediaFiles()
+  const files = useMemo(() => (media.list.status === 'ready' ? media.list.data : []), [media.list])
+  const loading = media.list.status === 'idle' || media.list.status === 'loading'
+  const error = media.list.status === 'error' ? media.list.error : null
+
   // Computed properties
-  const hasFiles = state.files.length > 0
+  const hasFiles = files.length > 0
   const hasSelectedFiles = state.selectedFiles.length > 0
-  const allFilesSelected =
-    state.files.length > 0 && state.selectedFiles.length === state.files.length
+  const allFilesSelected = files.length > 0 && state.selectedFiles.length === files.length
 
   // Sorted and filtered files
   const sortedFiles = useMemo(() => {
-    const sorted = [...state.files].sort((a, b) => {
+    const sorted = [...files].sort((a, b) => {
       let comparison = 0
 
       switch (state.sortBy) {
@@ -45,7 +51,7 @@ export function useMediaGalleryViewModel() {
     })
 
     return sorted
-  }, [state.files, state.sortBy, state.sortOrder])
+  }, [files, state.sortBy, state.sortOrder])
 
   // Selection helpers
   const isFileSelected = useCallback(
@@ -70,33 +76,34 @@ export function useMediaGalleryViewModel() {
     if (allFilesSelected) {
       actions.deselectAllFiles()
     } else {
-      actions.selectAllFiles()
+      actions.selectAllFiles(files.map((f) => f.key))
     }
-  }, [allFilesSelected, actions])
+  }, [allFilesSelected, actions, files])
 
   // File operations
   const handleDeleteFile = useCallback(
     async (fileKey: string) => {
       try {
-        await actions.deleteFile(fileKey)
-      } catch (error) {
-        console.error('Delete failed:', error)
+        await media.remove(fileKey)
+        actions.deselectFile(fileKey) // keep selection consistent
+      } catch (e) {
+        console.error('Delete failed:', e)
         window.alert('Failed to delete file.')
       }
     },
-    [actions],
+    [media, actions],
   )
 
   const handleDeleteSelected = useCallback(async () => {
     if (!hasSelectedFiles) return
-
     try {
-      await actions.deleteSelectedFiles(state.selectedFiles)
-    } catch (error) {
-      console.error('Batch delete failed:', error)
+      await Promise.allSettled(state.selectedFiles.map(media.remove))
+      actions.deselectAllFiles()
+    } catch (e) {
+      console.error('Batch delete failed:', e)
       window.alert('Failed to delete selected files.')
     }
-  }, [hasSelectedFiles, actions, state.selectedFiles])
+  }, [hasSelectedFiles, state.selectedFiles, media, actions])
 
   // View controls
   const toggleView = useCallback(() => {
@@ -142,23 +149,23 @@ export function useMediaGalleryViewModel() {
   )
 
   const viewGalleryState = useCallback((): GalleryState => {
-    if (state.error) return 'error'
-    if (state.loading && state.files.length === 0) return 'loading'
-    if (state.files.length === 0) return 'empty'
+    if (error) return 'error'
+    if (loading && files.length === 0) return 'loading'
+    if (files.length === 0) return 'empty'
     return 'ready'
-  }, [state.error, state.loading, state.files.length])
+  }, [error, loading, files.length])
 
   // Statistics
   const fileStats = useMemo(() => {
     const stats = {
-      total: state.files.length,
+      total: files.length,
       images: 0,
       videos: 0,
       totalSize: 0,
       selected: state.selectedFiles.length,
     }
 
-    state.files.forEach((file) => {
+    files.forEach((file) => {
       const type = getFileType(file)
       if (type === 'image') stats.images++
       if (type === 'video') stats.videos++
@@ -166,13 +173,13 @@ export function useMediaGalleryViewModel() {
     })
 
     return stats
-  }, [state.files, state.selectedFiles.length, getFileType])
+  }, [files, state.selectedFiles.length, getFileType])
 
   return {
     // State
     files: sortedFiles,
-    loading: state.loading,
-    error: state.error,
+    loading: loading,
+    error: error,
     selectedFiles: state.selectedFiles,
     view: state.view,
     sortBy: state.sortBy,
@@ -185,7 +192,7 @@ export function useMediaGalleryViewModel() {
     fileStats,
 
     // Actions
-    refreshFiles: actions.refreshFiles,
+    refreshFiles: media.refresh,
     selectFile: actions.selectFile,
     deselectFile: actions.deselectFile,
     deselectAllFiles: actions.deselectAllFiles,

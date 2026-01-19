@@ -3,6 +3,7 @@
 import { createContext, useMemo, useReducer, type ReactNode } from 'react'
 import { mediaGalleryReducer, initialState } from './reducer'
 import { createMediaGalleryActions } from './actions'
+
 import type { MediaGalleryState, MediaGalleryHandlers } from '../types/mediaGalaryTypes'
 
 export const MediaGalleryContext = createContext<{

@@ -1,9 +1,6 @@
 import type { MediaGalleryState, MediaGalleryReducerAction } from '../types/mediaGalaryTypes'
 
 export const initialState: MediaGalleryState = {
-  files: [],
-  loading: false,
-  error: null,
   selectedFiles: [],
   view: 'grid',
   sortBy: 'date',
@@ -15,29 +12,6 @@ export function mediaGalleryReducer(
   action: MediaGalleryReducerAction,
 ): MediaGalleryState {
   switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, loading: action.loading }
-
-    case 'SET_ERROR':
-      return { ...state, error: action.error }
-
-    case 'SET_FILES':
-      return {
-        ...state,
-        files: action.files,
-        loading: false,
-        selectedFiles: state.selectedFiles.filter((key) =>
-          action.files.some((file) => file.key === key),
-        ),
-      }
-
-    case 'DELETE_FILE':
-      return {
-        ...state,
-        files: state.files.filter((file) => file.key !== action.fileKey),
-        selectedFiles: state.selectedFiles.filter((key) => key !== action.fileKey),
-      }
-
     case 'SELECT_FILE':
       return {
         ...state,
@@ -53,10 +27,7 @@ export function mediaGalleryReducer(
       }
 
     case 'SELECT_ALL_FILES':
-      return {
-        ...state,
-        selectedFiles: state.files.map((file) => file.key),
-      }
+      return { ...state, selectedFiles: action.fileKeys }
 
     case 'DESELECT_ALL_FILES':
       return {
