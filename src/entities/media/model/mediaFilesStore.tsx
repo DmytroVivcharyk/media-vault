@@ -6,9 +6,9 @@ import { MediaApiClient } from '../api/mediaApiClient'
 
 type ListState =
   | { status: 'idle' }
-  | { status: 'loading' }
+  | { status: 'loading'; data?: MediaFile[] }
   | { status: 'ready'; data: MediaFile[] }
-  | { status: 'error'; error: string }
+  | { status: 'error'; error: string; data?: MediaFile[] }
 
 type MediaFilesStore = {
   list: ListState
@@ -24,13 +24,17 @@ export function MediaFilesProvider({ children }: { children: React.ReactNode }) 
   const [list, setList] = useState<ListState>({ status: 'idle' })
 
   const refresh = useCallback(async () => {
-    setList({ status: 'loading' })
+    setList(prev => ({
+      status: 'loading',
+      data: prev.status === 'ready' ? prev.data : prev.status === 'loading' ? prev.data : undefined,
+    }))
+  
     try {
       const files = await MediaApiClient.fetchMediaFiles()
       setList({ status: 'ready', data: files })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed to load files'
-      setList({ status: 'error', error: msg })
+      setList(prev => ({ status: 'error', error: msg, data: 'data' in prev ? prev.data : undefined }))
     }
   }, [])
 
