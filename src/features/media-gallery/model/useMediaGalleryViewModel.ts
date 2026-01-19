@@ -1,17 +1,12 @@
 'use client'
 
-import { useCallback, useContext, useMemo } from 'react'
-import { MediaGalleryContext } from './MediaGalleryProvider'
+import { useCallback, useMemo } from 'react'
+import { useMediaGallery } from './useMediaGallery'
 import type { MediaFile } from '@/entities/media'
 import type { GalleryState } from '../types/mediaGalaryTypes'
 
 export function useMediaGalleryViewModel() {
-  const context = useContext(MediaGalleryContext)
-
-  if (!context) {
-    throw new Error('useMediaGalleryViewModel must be used within MediaGalleryProvider')
-  }
-
+  const context = useMediaGallery()
   const { state, actions } = context
 
   // Computed properties
@@ -96,12 +91,12 @@ export function useMediaGalleryViewModel() {
     if (!hasSelectedFiles) return
 
     try {
-      await actions.deleteSelectedFiles()
+      await actions.deleteSelectedFiles(state.selectedFiles)
     } catch (error) {
       console.error('Batch delete failed:', error)
       window.alert('Failed to delete selected files.')
     }
-  }, [hasSelectedFiles, actions])
+  }, [hasSelectedFiles, actions, state.selectedFiles])
 
   // View controls
   const toggleView = useCallback(() => {

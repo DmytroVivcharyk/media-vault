@@ -35,5 +35,5 @@ export interface MediaGalleryHandlers {
   setSortBy: (sortBy: 'name' | 'date' | 'size') => void
   setSortOrder: (sortOrder: 'asc' | 'desc') => void
   deleteFile: (fileKey: string) => Promise<void>
-  deleteSelectedFiles: () => Promise<void>
+  deleteSelectedFiles: (keys: string[]) => Promise<void>
 }

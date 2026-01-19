@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useContext, useMemo } from 'react'
-import { UploadContext } from './UploadProvider'
+import { useCallback, useMemo } from 'react'
+import { useUpload } from './useUpload'
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 const ALLOWED_TYPES = [
@@ -14,11 +14,7 @@ const ALLOWED_TYPES = [
 ]
 
 export function useUploadViewModel() {
-  const context = useContext(UploadContext)
-
-  if (!context) {
-    throw new Error('useUploadViewModel must be used within UploadProvider')
-  }
+  const context = useUpload()
 
   const { state, actions } = context
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { UploadProvider, UploadZone } from '@/features/media-upload'
-import { MediaGalleryProvider, MediaGallery } from '@/features/media-gallery'
+import { MediaGalleryProvider, MediaGallery, MediaGalleryGate } from '@/features/media-gallery'
 
 export default function MediaVaultPage() {
   return (
@@ -33,7 +33,8 @@ export default function MediaVaultPage() {
 
           {/* Gallery Section */}
           <section>
-            <MediaGalleryProvider autoRefreshInterval={5000}>
+            <MediaGalleryProvider>
+              <MediaGalleryGate autoRefreshInterval={5000} />
               <MediaGallery />
             </MediaGalleryProvider>
           </section>
