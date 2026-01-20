@@ -1,23 +1,28 @@
 'use client'
 
-import { createContext, useCallback, useMemo, useReducer, type ReactNode } from 'react'
+import { createContext, useMemo, useReducer, type ReactNode } from 'react'
 import { initialState, reducer } from './reducer'
-import { createMediaFileActions } from './actions'
+import { createMediaFileActions, loadMediaFilesImpl } from './actions'
 import type { MediaFilesStore } from './types'
 
 export const Ctx = createContext<MediaFilesStore | null>(null)
 
-export function MediaFilesProvider({ children }: { children: ReactNode }) {
-  const [list, dispatch] = useReducer(reducer, initialState)
+interface Props {
+  children: ReactNode
+}
+
+export function MediaFilesProvider({ children }: Props) {
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   const baseActions = useMemo(() => createMediaFileActions(dispatch), [dispatch])
 
-  const load = useCallback(async () => {
-    if (list.status === 'loading' || list.status === 'ready') return
-    await baseActions.refresh()
-  }, [list.status, baseActions])
+  const actions = useMemo<Omit<MediaFilesStore, 'list'>>(
+    () => ({
+      ...baseActions,
+      load: () => loadMediaFilesImpl(dispatch, state),
+    }),
+    [state, baseActions, dispatch],
+  )
 
-  const value = useMemo(() => ({ ...baseActions, list, load }), [list, load, baseActions])
-
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+  return <Ctx.Provider value={{ list: state, ...actions }}>{children}</Ctx.Provider>
 }

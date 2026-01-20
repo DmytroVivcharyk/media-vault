@@ -1,5 +1,11 @@
 import { MediaApiClient } from '../api/mediaApiClient'
-import type { Action } from './types'
+import type { Action, ListState } from './types'
+
+export async function loadMediaFilesImpl(dispatch: React.Dispatch<Action>, state: ListState) {
+  if (state.status === 'loading' || state.status === 'ready') return
+  await createMediaFileActions(dispatch).refresh()
+}
+
 export function createMediaFileActions(dispatch: React.Dispatch<Action>) {
   const refresh = async () => {
     dispatch({ type: 'LOAD_START' })

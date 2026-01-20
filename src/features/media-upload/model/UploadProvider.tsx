@@ -2,7 +2,7 @@
 
 import { createContext, useMemo, useReducer, type ReactNode } from 'react'
 import { uploadReducer, initialState } from './reducer'
-import { createUploadActions } from './actions'
+import { createUploadActions, uploadFileImpl } from './actions'
 import type { UploadState, UploadHandlers } from '../types/mediaUploadTypes'
 
 export const UploadContext = createContext<{
@@ -22,13 +22,9 @@ export function UploadProvider({ children }: UploadProviderProps) {
   const actions = useMemo<UploadHandlers>(
     () => ({
       ...baseActions,
-      uploadFile: async (fileId: string) => {
-        const file = state.files.find((f) => f.id === fileId)
-        if (!file) return
-        await baseActions.uploadFile(file)
-      },
+      uploadFile: (fileId: string) => uploadFileImpl(dispatch, state, fileId),
     }),
-    [baseActions, state.files],
+    [baseActions, dispatch, state],
   )
 
   return <UploadContext.Provider value={{ state, actions }}>{children}</UploadContext.Provider>
