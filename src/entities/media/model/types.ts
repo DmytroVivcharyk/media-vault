@@ -41,3 +41,24 @@ export interface MediaListResponse {
   readonly hasMore?: boolean
   readonly nextToken?: string
 }
+
+export type ListState =
+  | { status: 'idle' }
+  | { status: 'loading'; data?: MediaFile[] }
+  | { status: 'ready'; data: MediaFile[] }
+  | { status: 'error'; error: string; data?: MediaFile[] }
+
+export type MediaFilesStore = {
+  list: ListState
+  load: () => Promise<void>
+  refresh: () => Promise<void>
+  remove: (fileKey: string) => Promise<void>
+  invalidate: () => void
+}
+
+export type Action =
+  | { type: 'LOAD_START' }
+  | { type: 'LOAD_SUCCESS'; files: MediaFile[] }
+  | { type: 'LOAD_ERROR'; error: string }
+  | { type: 'REMOVE_OPTIMISTIC'; fileKey: string }
+  | { type: 'INVALIDATE' }

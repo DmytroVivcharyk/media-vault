@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { useMediaFiles } from '@/entities/media/model/mediaFilesStore'
+import { useMediaFiles } from '@/entities/media/model/useMediaFiles'
 import { useMediaGallery } from './useMediaGallery'
 
 import type { MediaFile } from '@/entities/media'
@@ -12,15 +12,13 @@ export function useMediaGalleryViewModel() {
   const { state, actions } = context
 
   const media = useMediaFiles()
-  const files = useMemo(
-    () => ('data' in media.list ? (media.list.data ?? []) : []),
-    [media.list],
-  )
+  const files = useMemo(() => ('data' in media.list ? (media.list.data ?? []) : []), [media.list])
 
   // Loading state
   const error = media.list.status === 'error' ? media.list.error : null
 
-  const isInitialLoading = (media.list.status === 'idle' || media.list.status === 'loading') && files.length === 0
+  const isInitialLoading =
+    (media.list.status === 'idle' || media.list.status === 'loading') && files.length === 0
   const loading = isInitialLoading
 
   // const isRefreshing = media.list.status === 'loading' && files.length > 0
@@ -184,7 +182,6 @@ export function useMediaGalleryViewModel() {
     if (files.length === 0) return 'empty'
     return 'ready'
   }, [files.length, error, isInitialLoading])
-
 
   return {
     // State

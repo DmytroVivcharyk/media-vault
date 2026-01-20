@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useMediaFiles } from '../../model/mediaFilesStore'
+import { useMediaFiles } from '../../model/useMediaFiles'
 
 export function MediaFilesGate({ autoRefreshInterval = 0 }: { autoRefreshInterval?: number }) {
   const { load, refresh } = useMediaFiles()
