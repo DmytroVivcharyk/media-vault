@@ -8,7 +8,7 @@ import {
 } from '../../lib/localStorage.manager'
 import { calculateTokenExpirationTime } from '../../lib/token.manager'
 
-export function useAuthState() {
+function useAuthState() {
   const { actions } = useAuth()
 
   useEffect(() => {
@@ -19,8 +19,8 @@ export function useAuthState() {
 
       if (authTokenExpirationTime > 0) {
         actions.setLogoutTimer(authTokenExpirationTime)
-        actions.setLogedInState()
-        return // Just return, no need for null or undefined
+        actions.setLoggedInState()
+        return
       }
     }
 
@@ -34,12 +34,11 @@ export function useAuthState() {
     const refreshTokenExpirationTime = calculateTokenExpirationTime(refreshToken)
 
     if (refreshTokenExpirationTime > 0) {
-      actions.refreshToken(refreshToken)
+      actions.refreshToken()
     } else {
       actions.logout()
     }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [actions])
 }
 
 export function AuthGate() {

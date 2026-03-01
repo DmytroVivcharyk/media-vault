@@ -4,99 +4,87 @@ import {
   clearTokensFromLocalStorage,
   getRefreshTokenFromLocalStorage,
 } from '../lib/localStorage.manager'
-import type { AuthDispatchActionType, AythStateType } from '../types/modelTypes'
+import type { AuthDispatchActionType, AuthActionTypes } from '../types/modelTypes'
 
-export async function loginImpl(
+export function createAuthActions(
   dispatch: React.Dispatch<AuthDispatchActionType>,
-  state: AythStateType,
-  email: string,
-  password: string,
-): Promise<void> {
-  dispatch({ type: 'LOGIN_START' })
-
-  try {
-    // Call the login API
-    const { token, refreshToken } = await authApi.login(email, password)
-
-    // Store the token in localStorage (or any secure storage) // TODO Temporary solution use lib utill
-    saveTokensToLocalStorage(token, refreshToken)
-
-    setLogoutTimerImpl(dispatch, state)
-
-    dispatch({ type: 'LOGIN_SUCCESS' })
-  } catch (error) {
-    dispatch({
-      type: 'LOGIN_FAILURE',
-      payload: error instanceof Error ? error.message : 'Login failed',
-    })
+  timerRef: { current: number | null },
+): AuthActionTypes {
+  function clearLogoutTimer(): void {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
   }
-}
 
-export function logoutImpl(
-  dispatch: React.Dispatch<AuthDispatchActionType>,
-  state: AythStateType,
-): void {
-  // Clear token from localStorage
-  clearTokensFromLocalStorage()
+  function setLogoutTimer(expirationMs: number): void {
+    clearLogoutTimer()
 
-  clearLogoutTimerImpl(dispatch, state.logoutTimerID)
+    timerRef.current = window.setTimeout(() => {
+      refreshToken()
+    }, expirationMs)
+  }
 
-  // Dispatch logout action
-  dispatch({ type: 'LOGOUT' })
-}
+  async function login(email: string, password: string): Promise<void> {
+    dispatch({ type: 'LOGIN_START' })
 
-export async function refreshTokenImpl(
-  dispatch: React.Dispatch<AuthDispatchActionType>,
-  state: AythStateType,
-): Promise<void> {
-  try {
-    // Clear existing timer before refreshing token
-    clearLogoutTimerImpl(dispatch, state.logoutTimerID)
+    try {
+      const { token, refreshToken } = await authApi.login(email, password)
 
-    // Get the refresh token from localStorage
-    const refreshToken = getRefreshTokenFromLocalStorage()
+      saveTokensToLocalStorage(token, refreshToken)
 
-    // Call the refresh token API
-    const { token: newToken, refreshToken: newRefreshToken } =
-      await authApi.refreshToken(refreshToken)
-    saveTokensToLocalStorage(newToken, newRefreshToken)
+      // TODO: Replace with actual token expiration time from token
+      const tokenExpirationTime = 60 * 60 * 1000 // 1 hour for demo
+      setLogoutTimer(tokenExpirationTime)
 
-    // Set a new timer for the next token refresh
-    setLogoutTimerImpl(dispatch, state)
-  } catch {
-    // If token refresh fails, log the user out
+      dispatch({ type: 'LOGIN_SUCCESS' })
+    } catch (error) {
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: error instanceof Error ? error.message : 'Login failed',
+      })
+    }
+  }
+
+  function logout(): void {
+    clearTokensFromLocalStorage()
+    clearLogoutTimer()
     dispatch({ type: 'LOGOUT' })
   }
-}
 
-export function setLogoutTimerImpl(
-  dispatch: React.Dispatch<AuthDispatchActionType>,
-  state: AythStateType,
-): void {
-  // TODO Replace with actual token expiration time
-  const tokenExpirationTime = 60 * 60 * 1000 // 1 hour for demo
-
-  const timerID = window.setTimeout(() => {
+  async function refreshToken(): Promise<void> {
     try {
-      refreshTokenImpl(dispatch, state)
+      clearLogoutTimer()
+
+      const storedRefreshToken = getRefreshTokenFromLocalStorage()
+
+      if (!storedRefreshToken) {
+        dispatch({ type: 'LOGOUT' })
+        return
+      }
+
+      const { token: newToken, refreshToken: newRefreshToken } =
+        await authApi.refreshToken(storedRefreshToken)
+      saveTokensToLocalStorage(newToken, newRefreshToken)
+
+      // TODO: Replace with actual token expiration time from token
+      const tokenExpirationTime = 60 * 60 * 1000 // 1 hour for demo
+      setLogoutTimer(tokenExpirationTime)
     } catch {
       dispatch({ type: 'LOGOUT' })
     }
-  }, tokenExpirationTime)
-
-  dispatch({ type: 'SET_LOGOUT_TIMER_ID', payload: timerID })
-}
-
-export function clearLogoutTimerImpl(
-  dispatch: React.Dispatch<AuthDispatchActionType>,
-  timerID: number | null,
-): void {
-  if (timerID) {
-    clearTimeout(timerID)
-    dispatch({ type: 'CLEAR_LOGOUT_TIMER_ID' })
   }
-}
 
-export function setLogedInStateImpl(dispatch: React.Dispatch<AuthDispatchActionType>): void {
-  dispatch({ type: 'LOGIN_SUCCESS' })
+  function setLoggedInState(): void {
+    dispatch({ type: 'LOGIN_SUCCESS' })
+  }
+
+  return {
+    login,
+    logout,
+    refreshToken,
+    setLogoutTimer,
+    clearLogoutTimer,
+    setLoggedInState,
+  }
 }

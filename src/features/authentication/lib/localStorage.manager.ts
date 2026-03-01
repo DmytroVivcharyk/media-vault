@@ -12,10 +12,6 @@ export function getTokenFromLocalStorage(): string | null {
   return localStorage.getItem('authToken')
 }
 
-export function getRefreshTokenFromLocalStorage(): string {
-  const refreshToken = localStorage.getItem('authRefreshToken')
-  if (!refreshToken) {
-    throw new Error('No refresh token available')
-  }
-  return refreshToken
+export function getRefreshTokenFromLocalStorage(): string | null {
+  return localStorage.getItem('authRefreshToken')
 }

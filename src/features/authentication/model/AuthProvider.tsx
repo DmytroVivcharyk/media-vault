@@ -1,18 +1,13 @@
-import { createContext, useReducer, useMemo } from 'react'
-import { initialState, authReducer } from './reducer'
-import {
-  loginImpl,
-  logoutImpl,
-  refreshTokenImpl,
-  clearLogoutTimerImpl,
-  setLogoutTimerImpl,
-  setLogedInStateImpl,
-} from './actions'
+'use client'
 
-import type { AythStateType, AuthActionTypes } from '../types/modelTypes'
+import { createContext, useReducer, useMemo, useState } from 'react'
+import { initialState, authReducer } from './reducer'
+import { createAuthActions } from './actions'
+
+import type { AuthStateType, AuthActionTypes } from '../types/modelTypes'
 
 export const AuthContext = createContext<{
-  state: AythStateType
+  state: AuthStateType
   actions: AuthActionTypes
 } | null>(null)
 
@@ -22,17 +17,12 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState)
+  // Plain mutable container for timer ID (avoids react-hooks/refs lint with useRef)
+  const [timerRef] = useState(() => ({ current: null as number | null }))
 
   const actions = useMemo<AuthActionTypes>(
-    () => ({
-      login: (email: string, password: string) => loginImpl(dispatch, state, email, password),
-      logout: () => logoutImpl(dispatch, state),
-      refreshToken: () => refreshTokenImpl(dispatch, state),
-      setLogoutTimer: () => setLogoutTimerImpl(dispatch, state),
-      clearLogoutTimer: () => clearLogoutTimerImpl(dispatch, state.logoutTimerID),
-      setLogedInState: () => setLogedInStateImpl(dispatch),
-    }),
-    [dispatch, state],
+    () => createAuthActions(dispatch, timerRef),
+    [dispatch, timerRef],
   )
 
   return <AuthContext.Provider value={{ state, actions }}>{children}</AuthContext.Provider>
