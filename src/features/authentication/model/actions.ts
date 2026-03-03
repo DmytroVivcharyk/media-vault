@@ -4,23 +4,23 @@ import {
   clearTokensFromLocalStorage,
   getRefreshTokenFromLocalStorage,
 } from '../lib/localStorage.manager'
-import type { AuthDispatchActionType, AuthActionTypes } from '../types/modelTypes'
+import type { AuthDispatchActionType, AuthActionTypes, AuthInternals } from '../types/modelTypes'
 
 export function createAuthActions(
   dispatch: React.Dispatch<AuthDispatchActionType>,
-  timerRef: { current: number | null },
+  internals: AuthInternals,
 ): AuthActionTypes {
   function clearLogoutTimer(): void {
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
+    if (internals.logoutTimerId !== null) {
+      clearTimeout(internals.logoutTimerId)
+      internals.logoutTimerId = null
     }
   }
 
   function setLogoutTimer(expirationMs: number): void {
     clearLogoutTimer()
 
-    timerRef.current = window.setTimeout(() => {
+    internals.logoutTimerId = window.setTimeout(() => {
       refreshToken()
     }, expirationMs)
   }

@@ -1,15 +1,14 @@
 import { uploadService } from '../services/uploadService'
-import type { UploadReducerAction, UploadState } from '../types/mediaUploadTypes'
+import type { UploadReducerAction } from '../types/mediaUploadTypes'
 import type { UploadFile } from '@/entities/media'
 
 export async function uploadFileImpl(
   dispatch: React.Dispatch<UploadReducerAction>,
-  state: UploadState,
-  fileId: string,
+  file: UploadFile,
 ): Promise<void> {
-  const file = state.files.find((f) => f.id === fileId)
-  if (!file) return
   if (file.status !== 'pending') return
+
+  const fileId = file.id
 
   try {
     dispatch({ type: 'SET_STATUS', fileId, status: 'uploading' })
@@ -32,6 +31,7 @@ export async function uploadFileImpl(
 export function createUploadActions(dispatch: React.Dispatch<UploadReducerAction>) {
   return {
     addFiles: (files: File[]) => dispatch({ type: 'ADD_FILES', files }),
+    uploadFile: (file: UploadFile) => uploadFileImpl(dispatch, file),
     updateProgress: (fileId: string, progress: number) =>
       dispatch({ type: 'UPDATE_PROGRESS', fileId, progress }),
     setStatus: (fileId: string, status: UploadFile['status'], error?: string) =>

@@ -10,6 +10,11 @@ export type AuthDispatchActionType =
   | { type: 'LOGIN_FAILURE'; payload: string }
   | { type: 'LOGOUT' }
 
+/** Mutable operational state that doesn't affect rendering (timers, intervals, etc.) */
+export type AuthInternals = {
+  logoutTimerId: number | null
+}
+
 export type AuthActionTypes = {
   login: (email: string, password: string) => Promise<void>
   logout: () => void

@@ -1,4 +1,8 @@
-import type { AuthStateType, AuthDispatchActionType } from '../types/modelTypes'
+import type { AuthStateType, AuthDispatchActionType, AuthInternals } from '../types/modelTypes'
+
+export const createAuthInternals = (): AuthInternals => ({
+  logoutTimerId: null,
+})
 
 export const initialState: AuthStateType = {
   isAuthenticated: false,

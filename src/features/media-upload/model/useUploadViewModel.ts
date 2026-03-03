@@ -79,7 +79,7 @@ export function useUploadViewModel() {
 
     for (let i = 0; i < pendingFiles.length; i += maxConcurrency) {
       const batch = pendingFiles.slice(i, i + maxConcurrency)
-      const batchPromises = batch.map((file) => actions.uploadFile(file.id))
+      const batchPromises = batch.map((file) => actions.uploadFile(file))
       uploadPromises.push(...batchPromises)
 
       // Wait for current batch to complete before starting next batch
@@ -89,9 +89,10 @@ export function useUploadViewModel() {
 
   const uploadSingleFile = useCallback(
     async (fileId: string) => {
-      await actions.uploadFile(fileId)
+      const file = state.files.find((f) => f.id === fileId)
+      if (file) await actions.uploadFile(file)
     },
-    [actions],
+    [state.files, actions],
   )
 
   const retryFailedUploads = useCallback(async () => {

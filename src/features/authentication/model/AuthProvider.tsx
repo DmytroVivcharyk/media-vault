@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useReducer, useMemo, useState } from 'react'
-import { initialState, authReducer } from './reducer'
+import { initialState, authReducer, createAuthInternals } from './reducer'
 import { createAuthActions } from './actions'
 
 import type { AuthStateType, AuthActionTypes } from '../types/modelTypes'
@@ -17,12 +17,11 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState)
-  // Plain mutable container for timer ID (avoids react-hooks/refs lint with useRef)
-  const [timerRef] = useState(() => ({ current: null as number | null }))
+  const [internals] = useState(createAuthInternals)
 
   const actions = useMemo<AuthActionTypes>(
-    () => createAuthActions(dispatch, timerRef),
-    [dispatch, timerRef],
+    () => createAuthActions(dispatch, internals),
+    [dispatch, internals],
   )
 
   return <AuthContext.Provider value={{ state, actions }}>{children}</AuthContext.Provider>

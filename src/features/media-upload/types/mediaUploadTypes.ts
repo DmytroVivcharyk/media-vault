@@ -16,7 +16,7 @@ export interface UploadState {
 
 export interface UploadHandlers {
   addFiles: (files: File[]) => void
-  uploadFile: (fileId: string) => Promise<void>
+  uploadFile: (file: UploadFile) => Promise<void>
   updateProgress: (fileId: string, progress: number) => void
   setStatus: (fileId: string, status: UploadFile['status'], error?: string) => void
   removeFile: (fileId: string) => void
