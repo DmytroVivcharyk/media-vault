@@ -3,7 +3,6 @@ import type { BaseApi } from '@/shared/api/baseApi'
 
 type BaseApiRequest = BaseApi['request']
 
-
 /**
  * TC39 Stage 3 method decorator that injects the Authorization header
  * into all `this.request()` calls made by the decorated method.

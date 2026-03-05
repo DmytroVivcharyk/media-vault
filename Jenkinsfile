@@ -49,7 +49,7 @@ pipeline {
                 echo 'Installing npm dependencies...'
                 sh 'node --version'   // Log versions for debugging
                 sh 'npm --version'
-                sh 'npm install'
+                sh 'npm ci install'
             }
         }
 
@@ -61,7 +61,7 @@ pipeline {
                 stage('Prettier') {
                     steps {
                         echo 'Checking code formatting with Prettier...'
-                        sh 'npm run format'
+                        sh 'npm run format:check'
                     }
                 }
                 stage('ESLint') {
