@@ -14,6 +14,17 @@ pipeline {
         timestamps()                         // Add timestamps to console output
     }
 
+    environment {
+        // Non-sensitive: plain values inlined here
+        AWS_REGION      = 'us-east-1'
+        AWS_S3_BUCKET   = 'media-vault'
+        AWS_S3_ENDPOINT = 'http://localhost:9000'
+
+        // Add these via: Manage Jenkins → Credentials → (global) → Add Credentials → Secret text
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
     stages {
         // ─── STAGE 1: CHECKOUT ─────────────────────────────────────
         // Equivalent to: actions/checkout@v5
