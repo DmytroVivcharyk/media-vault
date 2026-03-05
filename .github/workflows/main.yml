@@ -1,0 +1,40 @@
+name: Test Workflow
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v5
+        
+        - name: install dependencies
+          run: npm install
+
+        - name: log current repository
+          run: pwd && ls -la && echo $GITHUB_WORKSPACE
+
+        - name: Check Pretier formatting
+          run: npm run format
+
+        - name: Check ESLint errors
+          run: npm run es-lint-check
+
+        - name: Check TypeScript errors
+          run: npm run type-check
+  
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: install dependencies
+        run: npm install
+
+      - name: Build the application
+        run: npm run build
+
