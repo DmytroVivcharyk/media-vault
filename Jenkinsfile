@@ -20,6 +20,10 @@ pipeline {
         AWS_S3_BUCKET   = 'media-vault'
         AWS_S3_ENDPOINT = 'http://localhost:9000'
 
+        AWS_REGION_JENKINS    = 'us-east-1'
+        AWS_S3_BUCKET_JENKINS = 'media-vault-artifacts'
+
+
         // Add these via: Manage Jenkins → Credentials → (global) → Add Credentials → Secret text
         AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
@@ -83,6 +87,23 @@ pipeline {
             steps {
                 echo 'Building the application...'
                 sh 'npm run build'
+            }
+        }
+
+        // ─── NEW STAGE: Upload Artifact to S3 ────────────────────────
+        stage('Upload Artifact to S3') {
+            steps {
+                echo 'Archiving build output...'
+                sh 'tar -czf build-artifact.tar.gz .next'
+
+                echo 'Uploading artifact to S3...'
+                sh """
+                    aws s3 cp build-artifact.tar.gz \
+                        s3://${AWS_S3_BUCKET_JENKINS}/artifacts/build-${BUILD_NUMBER}.tar.gz \
+                        --region ${AWS_REGION_JENKINS}
+                """
+
+                echo "Artifact uploaded: s3://${AWS_S3_BUCKET}/artifacts/build-${BUILD_NUMBER}.tar.gz"
             }
         }
     }
